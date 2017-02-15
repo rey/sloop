@@ -97,5 +97,8 @@ Vagrant.configure("2") do |config|
     wp core config --dbname=wordress_db --dbuser=wordpress_user --dbpass=wordpress_password
     wp db create
     wp core install --url=localhost:1234 --title="WordPress Website Title" --admin_user=rey --admin_password=password123 --admin_email=rey@zzmag.com
+
+    echo "symlink theme"
+    ln -s /vagrant/theme  /var/www/html/wp-content/themes
   SHELL
 end
