@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://atlas.hashicorp.com/search.
-  config.vm.box = "ubuntu/xenial64"
+  config.vm.box = "v0rtex/xenial64-iso"
   # config.vm.box = "ubuntu/trusty64"
   # config.vm.box = "ubuntu/vivid64"
 
@@ -68,12 +68,14 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL, privileged: false
 
-    sudo apt-get update && sudo apt-get upgrade --assume-yes
+    sudo apt-get update
 
-    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password mysql_password123'
-    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password mysql_password123'
+    DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
-    sudo apt-get install --assume-yes php apache2 php7.0-mysql libapache2-mod-php mysql-server
+    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password password123'
+    sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password password123'
+
+    sudo apt-get install --assume-yes php apache2 php7.0-mysql libapache2-mod-php mysql-server git curl vim
 
     echo "<Directory /var/www/html/>" | sudo tee --append /etc/apache2/apache2.conf
     echo "AllowOverride All" | sudo tee --append /etc/apache2/apache2.conf
@@ -85,13 +87,13 @@ Vagrant.configure("2") do |config|
     curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
     chmod +x wp-cli.phar
     sudo mv wp-cli.phar /usr/local/bin/wp
-    sudo chown -R ubuntu /usr/local/bin
+    sudo chown -R vagrant /usr/local/bin
 
-    mysql --user=root --password=mysql_password123 --execute="CREATE USER 'wordpress_user'@'localhost' IDENTIFIED BY 'wordpress_password';"
-    mysql --user=root --password=mysql_password123 --execute="GRANT ALL PRIVILEGES ON * . * TO 'wordpress_user'@'localhost';"
-    mysql --user=root --password=mysql_password123 --execute="FLUSH PRIVILEGES;"
+    mysql --user=root --password=password123 --execute="CREATE USER 'wordpress_user'@'localhost' IDENTIFIED BY 'wordpress_password';"
+    mysql --user=root --password=password123 --execute="GRANT ALL PRIVILEGES ON * . * TO 'wordpress_user'@'localhost';"
+    mysql --user=root --password=password123 --execute="FLUSH PRIVILEGES;"
 
-    sudo chown -R ubuntu /var/www/html && rm /var/www/html/index.html
+    sudo chown -R vagrant /var/www/html && rm /var/www/html/index.html
 
     cd /var/www/html && wp core download
     wp core config --dbname=wordress_db --dbuser=wordpress_user --dbpass=wordpress_password
